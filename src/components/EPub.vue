@@ -9,7 +9,7 @@
         <div class="right" @click="next"></div>
       </div>
       <title-bar :ifShow="ifShow" />
-      <footer-bar :ifShow="ifShow" @toggleFontSize="toggleFontSize" />
+      <footer-bar :ifShow="ifShow" :fontSizeList="fontSizeList" @toggleFontSize="toggleFontSize" ref="footerBar" />
     </div>
   </div>
 </template>
@@ -22,7 +22,16 @@ import FooterBar from './FooterBar';
 export default {
   data() {
     return {
-      ifShow: false
+      ifShow: false,
+      fontSizeList:[
+        {fontSize: 12},
+        {fontSize: 14},
+        {fontSize: 16},
+        {fontSize: 18},
+        {fontSize: 20},
+        {fontSize: 22},
+        {fontSize: 24}
+      ]
     };
   },
 
@@ -55,6 +64,10 @@ export default {
     },
     toggleTitleAndFootbar() {
       this.ifShow = !this.ifShow;
+
+      if(!this.ifShow) {
+        this.$refs.footerBar.hideSettingFontSize();
+      }
     },
     toggleFontSize() {
       console.log(111)
