@@ -2,35 +2,48 @@
 <template>
   <div>
     <transition name="slide-up">
-      <div class="footer-bar" v-if="ifShow" :class="{'border-shadow':!ifShowFontSize}">
+      <div class="footer-bar" v-if="ifShow" :class="{'border-shadow':!ifShowSetting}">
         <div class="icon-wrapper">
           <i class="icon-menu"></i>
         </div>
-        <div class="icon-wrapper">
+        <div class="icon-wrapper" @click="toggleSetting(1)">
           <i class="icon-progress"></i>
         </div>
-        <div class="icon-wrapper">
+        <div class="icon-wrapper" @click="toggleSetting(1)">
           <i class="icon-bright"></i>
         </div>
-        <div class="icon-wrapper" @click="toggleFontSize">
+        <div class="icon-wrapper" @click="toggleSetting(0)">
           <i class="">Aa</i>
         </div>
       </div>
     </transition>
     <transition name="slide-up">
-      <div class="setting-wrapper" v-if="ifShowFontSize">
-        <div class="setting-font-size">
+      <div class="setting-wrapper" v-if="ifShowSetting">
+        <div class="setting-font-size" v-if="showTag===0">
           <div class="preview" :style="{fontSize: fontSizeList[0].fontSize+'px'}">A</div>
           <div class="select">
             <div class="select-wrapper" v-for="(item, index) in fontSizeList" :key="index">
               <div class="line"></div>
-              <div class="point-wrapper">
-                <div class="point"></div>
+              <div class="point-wrapper" @click="changeFontSize(item.fontSize)">
+                <div class="point" v-show="defaultFontSize==item.fontSize"></div>
               </div>
               <div class="line"></div>
             </div>
           </div>
           <div class="preview" :style="{fontSize: fontSizeList[fontSizeList.length - 1].fontSize+'px'}">A</div>
+        </div>
+        <div class="setting-theme" v-if="showTag===1">
+          <div class="theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
+            <div class="view" :style="item.style.body" :class="{'border': item.name === 'default'}"></div>
+            <div class="text" :class="{'selected': defaultTheme===index}">item.name</div>
+          </div>
+        </div>
+
+        <div class="setting-location" v-if="showTag===3">
+          <div class="slide">
+            <input type="slide">
+          </div>
+          <div class="loading">正在加载</div>
         </div>
       </div>
     </transition>
@@ -41,7 +54,8 @@
 export default {
   data() {
     return {
-      ifShowFontSize: false
+      ifShowSetting: false,
+      showTag: 0
     };
   },
 
@@ -52,7 +66,13 @@ export default {
     },
     fontSizeList: {
       type: Array
-    }
+    },
+    defaultFontSize: {
+      type: Number,
+      default: 12
+    },
+    themesList: Array,
+    defaultTheme: Number
   },
 
   components: {},
@@ -62,16 +82,22 @@ export default {
   mounted(ev) {},
 
   methods: {
-    toggleFontSize() {
-      console.log(111);
+    setTheme(index) {
+      this.$emit('setTheme', index);
+    },
+    toggleSetting(tag) {
       // this.$emit('toggleFontSize')
-      this.ifShowFontSize = !this.ifShowFontSize;
+      this.showTag = tag;
+      this.showSetting()
     },
-    showSettingFontSize() {
-      this.ifShowFontSize = true;
+    showSetting() {
+      this.ifShowSetting = true;
     },
-    hideSettingFontSize() {
-      this.ifShowFontSize = false;
+    hideSetting() {
+      this.ifShowSetting = false;
+    },
+    changeFontSize(size) {
+      this.$emit('changeFontSize', size)
     }
   }
 };
@@ -125,15 +151,25 @@ export default {
 }
 .setting-font-size {
   @include center();
+  padding: 0 px2rem(20);
 
   .preview {
     text-align: center;
     flex: 0 0 px2rem(56);
     line-height: px2rem(46);
+    position: absolute;
+
+    &:first-child{
+      left: px2rem(20);
+    }
+    &:last-child{
+      right: px2rem(10);
+    }
   }
   .select {
     flex: 1;
     display: flex;
+    height: px2rem(46);
   }
   .select-wrapper {
     flex: 1;
@@ -188,6 +224,35 @@ export default {
           background: #000;
           border-radius: px2rem(3);
         }
+      }
+    }
+  }
+}
+.setting-theme{
+  height: 100%;
+  display: flex;
+  .theme-item{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: px2rem(5);
+
+    .view{
+      flex: 1;
+      box-sizing: border-box;
+
+      &.border{
+        border: 1px solid #ccc;
+      }
+    }
+    .text{
+      height: px2rem(18);
+      line-height: px2rem(18);
+      text-align: center;
+      color: #ccc;
+
+      &.selected{
+        color: #333;
       }
     }
   }

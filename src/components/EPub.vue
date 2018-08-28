@@ -9,7 +9,19 @@
         <div class="right" @click="next"></div>
       </div>
       <title-bar :ifShow="ifShow" />
-      <footer-bar :ifShow="ifShow" :fontSizeList="fontSizeList" @toggleFontSize="toggleFontSize" ref="footerBar" />
+      <footer-bar 
+      :ifShow="ifShow"
+      :fontSizeList="fontSizeList"
+      :defaultFontSize="defaultFontSize"
+      @toggleFontSize="toggleFontSize"
+      @changeFontSize="setFontSize"
+      :themesList="themesList"
+      :defaultTheme="defaultTheme"
+      @setTheme="setTheme"
+      ref="footerBar"
+      :locationLoaded="locationLoaded"
+      @onProgressChange="onProgressChange"
+       />
     </div>
   </div>
 </template>
@@ -31,7 +43,36 @@ export default {
         {fontSize: 20},
         {fontSize: 22},
         {fontSize: 24}
-      ]
+      ],
+      defaultFontSize: 16,
+      themesList: [
+        {
+          name: 'default',
+          style: {
+            body: {'color': '#000', 'background': '#fff'}
+          }
+        },
+        {
+          name: 'eye',
+          style: {
+            body: {'color': '#000', 'background': '#ceeaba'}
+          }
+        },
+        {
+          name: 'night',
+          style: {
+            body: {'color': '#fff', 'background': '#000'}
+          }
+        },
+        {
+          name: 'gold',
+          style: {
+            body: {'color': '#000', 'background': 'rgb(241, 236, 226)'}
+          }
+        }
+      ],
+      defaultTheme: 3,
+      locationLoaded: false
     };
   },
 
@@ -55,6 +96,32 @@ export default {
         height: window.innerHeight
       });
       this.rendition.display();
+      this.themes = this.rendition.themes;
+      this.setFontSize(this.defaultFontSize);
+
+      this.registerTheme();
+      this.setTheme(this.defaultTheme);
+
+      this.book.ready.then(()=>{
+        return this.book.locations.generate();
+      }).then((res)=>{
+        this.locationLoaded = true;
+        this.locations = this.book.locations;
+        this.onProgressChange(100);
+      });
+    },
+    onProgressChange(progress) {
+      const percentage = progress / 100;
+      const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0;
+      this.rendition.display(location);
+    },
+    registerTheme() {
+      this.themesList.forEach((theme)=>{        
+        this.themes.register(theme.name, theme.style);
+      })
+    },
+    setTheme(idx) {
+      this.themes.select(this.themesList[idx].name);
     },
     prev(ev) {
       this.rendition.prev();
@@ -66,11 +133,16 @@ export default {
       this.ifShow = !this.ifShow;
 
       if(!this.ifShow) {
-        this.$refs.footerBar.hideSettingFontSize();
+        this.$refs.footerBar.hideSetting();
       }
     },
     toggleFontSize() {
-      console.log(111)
+    },
+    setFontSize(size){
+      this.defaultFontSize = size;
+      if(this.themes){
+        this.themes.fontSize(size + 'px');
+      }
     }
   }
 };
