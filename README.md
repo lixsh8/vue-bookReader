@@ -1,6 +1,6 @@
 # epub
 
-> A Vue.js project
+> A bookReader project by vue and epubjs
 
 ## Build Setup
 
