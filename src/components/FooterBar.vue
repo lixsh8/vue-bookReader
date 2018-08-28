@@ -3,10 +3,10 @@
   <div>
     <transition name="slide-up">
       <div class="footer-bar" v-if="ifShow" :class="{'border-shadow':!ifShowSetting}">
-        <div class="icon-wrapper">
+        <div class="icon-wrapper" @click="toggleSetting(3)">
           <i class="icon-menu"></i>
         </div>
-        <div class="icon-wrapper" @click="toggleSetting(1)">
+        <div class="icon-wrapper" @click="toggleSetting(2)">
           <i class="icon-progress"></i>
         </div>
         <div class="icon-wrapper" @click="toggleSetting(1)">
@@ -39,23 +39,34 @@
           </div>
         </div>
 
-        <div class="setting-location" v-if="showTag===3">
-          <div class="slide">
-            <input type="slide">
+        <div class="setting-progress" v-if="showTag===2">
+          <div class="progress-wrapper">
+            <input type="range" class="progress" min="0" max="100" step="1" @change="onProgressChange($event.target.value)" @input="onProgressInput($event.target.value)" :value="progress" :disabled="!locationLoaded" ref="progress">
           </div>
-          <div class="loading">正在加载</div>
+          <div class="txt-wrapper">
+            <div class="txt">{{locationLoaded?progress+'%':'加载中...'}}</div>
+          </div>
         </div>
       </div>
+    </transition>
+
+    <content-view :ifShowContent="ifShowContent" :navigation="navigation" :bookAvailable="locationLoaded" @jumpTo="jumpTo" />
+    <transition name="fade">
+      <div class="content-mask" v-if="ifShowContent" @click="hideContent"></div>
     </transition>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+import ContentView from './ContentView';
+
 export default {
   data() {
     return {
       ifShowSetting: false,
-      showTag: 0
+      showTag: 0,
+      progress: 0,
+      ifShowContent: false
     };
   },
 
@@ -72,23 +83,47 @@ export default {
       default: 12
     },
     themesList: Array,
-    defaultTheme: Number
+    defaultTheme: Number,
+    locationLoaded: Boolean,
+    navigation: Object
   },
 
-  components: {},
+  components: {
+    ContentView
+  },
 
   computed: {},
 
-  mounted(ev) {},
+  mounted(ev) {
+  },
 
   methods: {
+    jumpTo(href) {
+      this.$emit('jumpTo', href);
+    },
+    hideContent() {
+      this.ifShowContent = false;
+    },
+    onProgressChange(progress) {
+      this.progress = progress;
+      this.$emit("onProgressChange", progress);
+    },
+    onProgressInput(progress) {
+      this.progress = progress;
+    },
     setTheme(index) {
-      this.$emit('setTheme', index);
+      this.$emit("setTheme", index);
     },
     toggleSetting(tag) {
       // this.$emit('toggleFontSize')
       this.showTag = tag;
-      this.showSetting()
+      if(tag===3){
+        this.ifShowContent = true;
+        this.hideSetting();
+      }else{
+        this.ifShowContent = false;
+        this.showSetting();
+      }
     },
     showSetting() {
       this.ifShowSetting = true;
@@ -97,7 +132,7 @@ export default {
       this.ifShowSetting = false;
     },
     changeFontSize(size) {
-      this.$emit('changeFontSize', size)
+      this.$emit("changeFontSize", size);
     }
   }
 };
@@ -159,10 +194,10 @@ export default {
     line-height: px2rem(46);
     position: absolute;
 
-    &:first-child{
+    &:first-child {
       left: px2rem(20);
     }
-    &:last-child{
+    &:last-child {
       right: px2rem(10);
     }
   }
@@ -228,33 +263,86 @@ export default {
     }
   }
 }
-.setting-theme{
+.setting-theme {
   height: 100%;
   display: flex;
-  .theme-item{
+  .theme-item {
     flex: 1;
     display: flex;
     flex-direction: column;
     padding: px2rem(5);
 
-    .view{
+    .view {
       flex: 1;
       box-sizing: border-box;
 
-      &.border{
+      &.border {
         border: 1px solid #ccc;
       }
     }
-    .text{
+    .text {
       height: px2rem(18);
       line-height: px2rem(18);
       text-align: center;
       color: #ccc;
 
-      &.selected{
+      &.selected {
         color: #333;
       }
     }
   }
+}
+.setting-progress {
+  display: flex;
+  flex-direction: column;
+
+  .progress-wrapper {
+    flex: 1;
+    @include center();
+    padding: px2rem(12) 0 px2rem(6) 0;
+
+    .progress {
+      -webkit-appearance: none;
+      width: 80%;
+      height: px2rem(2);
+      background: #ccc;
+      border-radius: px2rem(1);
+
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: px2rem(20);
+        width: px2rem(20);
+        // margin-top: -5px; 
+        background: #ffffff;
+        border-radius: 50%; 
+        box-shadow: 0 0 0.125em #3b4547; 
+      }
+    }
+  }
+  .txt-wrapper {
+    flex: 0 0 px2rem(20);
+    @include center();
+  }
+}
+.content-mask{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 10;
+}
+.fade-enter-active,
+.fade-leave-active{
+  transition: all .3s;
+}
+.fade-enter,
+.fade-leave-to{
+  opacity: 0;
+}
+.fade-enter-to,
+.fade-leave{
+  opacity: 1;
 }
 </style>

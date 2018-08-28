@@ -21,6 +21,8 @@
       ref="footerBar"
       :locationLoaded="locationLoaded"
       @onProgressChange="onProgressChange"
+      :navigation="navigation"
+      @jumpTo="jumpTo"
        />
     </div>
   </div>
@@ -72,7 +74,8 @@ export default {
         }
       ],
       defaultTheme: 3,
-      locationLoaded: false
+      locationLoaded: false,
+      navigation: null
     };
   },
 
@@ -103,12 +106,18 @@ export default {
       this.setTheme(this.defaultTheme);
 
       this.book.ready.then(()=>{
+        this.navigation = this.book.navigation;
+        // console.log(this.navigation)
         return this.book.locations.generate();
       }).then((res)=>{
         this.locationLoaded = true;
         this.locations = this.book.locations;
-        this.onProgressChange(100);
+        this.onProgressChange(0);
       });
+    },
+    jumpTo(href) {
+      console.log(href);
+      this.rendition.display(href)
     },
     onProgressChange(progress) {
       const percentage = progress / 100;
